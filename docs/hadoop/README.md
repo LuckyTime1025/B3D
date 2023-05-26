@@ -373,7 +373,7 @@ hadoop.tmp.dir|/tmp/hadoop-${user_name}|临时目录
 
 我们需要在此文件内设置 hadoop 集群容灾备份数量、名称节点（namenode）数据存储目录、数据节点（datanode）数据存储目录、辅助名称节点（secondary namenode）节点地址和端口。
 
-编辑 core-site.xml：
+编辑 hdfs-site.xml：
 
 ```bash
 vi hdfs-site.xml
