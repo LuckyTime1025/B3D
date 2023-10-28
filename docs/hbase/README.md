@@ -12,7 +12,7 @@
 ---
 
 ## 1.解压
->
+
 > 以下内容在 master 节点上操作
 
 进入 /opt/app/ 目录内：
@@ -36,7 +36,7 @@ mv ./hbase-2.2.3 ./hbase
 ---
 
 ## 2.配置环境变量
->
+
 > 以下内容在 master 节点上操作
 
 编辑环境变量：
@@ -55,7 +55,7 @@ export PATH=$PATH:$HBASE_HOME/bin
 ---
 
 ## 3.修改配置文件
->
+
 > 以下内容在 master 节点上操作
 
 进入配置文件目录：
@@ -96,36 +96,44 @@ vi hbase-site.xml
 <?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
 
 <configuration>
- <!-- hbase 的数据保存在 hdfs 对应目录下 -->
- <property>
-  <name>hbase.rootdir</name>
-  <value>hdfs://master:9000/hbase</value>
- </property>
- <!-- 是否是分布式环境 -->
- <property> 
-  <name>hbase.cluster.distributed</name> 
-  <value>true</value> 
- </property> 
- <!-- 冗余度 -->
- <property>
-  <name>dfs.replication</name>
-  <value>2</value>
- </property>
- <!-- 连接 zookeeper -->
- <property>
-  <name>hbase.zookeeper.property.clientPort</name>
-  <value>2181</value>
- </property>
- <!-- zookeeper 数据目录 -->
- <property> 
-  <name>hbase.zookeeper.property.dataDir</name> 
-  <value>/opt/apps/hbase</value>       
- </property>
- <!-- 配置 zookeeper 数据目录的地址，三个节点都启动 -->
- <property> 
-  <name>hbase.zookeeper.quorum</name> 
-  <value>master,slave1,slave2</value>     
- </property>
+    <!-- hbase 的数据保存在 hdfs 对应目录下 -->
+    <property>
+        <name>hbase.rootdir</name>
+        <value>hdfs://master:9000/hbase</value>
+    </property>
+    <!-- 是否是分布式环境 -->
+    <property> 
+        <name>hbase.cluster.distributed</name> 
+        <value>true</value> 
+    </property> 
+    <!-- 冗余度 -->
+    <property>
+        <name>dfs.replication</name>
+        <value>2</value>
+    </property>
+    <!-- 连接 zookeeper -->
+    <property>
+        <name>hbase.zookeeper.property.clientPort</name>
+        <value>2181</value>
+    </property>
+    <!-- zookeeper 数据目录 -->
+    <property> 
+        <name>hbase.zookeeper.property.dataDir</name> 
+        <value>/opt/apps/hbase</value>       
+    </property>
+    <!-- 配置 zookeeper 数据目录的地址，三个节点都启动 -->
+    <property> 
+        <name>hbase.zookeeper.quorum</name> 
+        <value>master,slave1,slave2</value>     
+    </property>
+    <!--
+        关闭 hbase kerberos 认证（使用本地文件系统存储，不使用 HDFS 的情况下需要将此配置设置为 false）
+        王大拿踩的坑：https://blog.csdn.net/qq_58768870/article/details/121111992
+    -->
+    <property> 
+        <name>hbase.unsafe.stream.capability.enforce</name> 
+        <value>false</value>     
+    </property>
 </configuration>
 ```
 
@@ -144,10 +152,18 @@ slave2
 
 ![regionservers](images/3_1.png)
 
+进入此目录将相应的 jar 包重命名，否则会与 Hadoop 冲突：
+
+```bash
+cd $HBASE_HOME/lib/client-facing-thirdparty/
+
+mv ./slf4j-log4j12-1.7.25.jar slf4j-log4j12-1.7.25.jar.bak
+```
+
 ---
 
 ## 4.分发文件
->
+
 > 以下内容在 master 节点上操作
 
 分发文件到 slave1、slave2 ：
@@ -167,18 +183,18 @@ ssh slave2 "echo 'master' >> /opt/apps/hbase/conf/regionservers"
 
 ![img.png](images/4_1.png)
 
----
-
 ## 5.生效环境变量
->
+
 > 以下内容在所有节点上操作
 
 ```bash
 env-update
 ```
 
+---
+
 ## 6.启动测试
->
+
 > 以下内容在 master 节点上操作
 
 master 节点上启动：
@@ -194,12 +210,19 @@ jps
 ```
 
 master 节点从出现 Hmaster 进程，slave1、slave2 上出现 HregionServer 进程：
+
+> 如果 slave1、slave2 上没有出现 HregionServer 进程，请参考 [FAQ](#hbase-没有正常启动) 部分章节。
+
 ![img.png](images/6_1.png)
+
+浏览器打开 16010 端口查看 hbase 的 WebUI 启动情况：
+
+![img.png](images/6_2.png)
 
 ---
 
 ## 7.Hbase shell
->
+
 > 以下内容在 master 节点上操作  
 > 确保您已经启动了 hadoop 和 zookeeper
 
@@ -255,6 +278,34 @@ exit
 ```
 
 ---
+
+## HBase 没有正常启动
+
+确保所有节点的时区一致、时间误差±3s。
+
+检查时区：
+
+```bash
+date -R
+```
+
+通过 ntp 工具联网校时：
+
+```bash
+# 安装 ntp
+yum -y install ntp
+
+# 同步网络时间
+ntpdate cn.pool.ntp.org
+```
+
+如果没有网络环境，也可以通过手动设置时间来减小节点之间的误差：
+
+```bash
+date -s "hh:mm:ss"
+ssh slave1 "date -s 'hh:mm:ss'"
+ssh slave2 "date -s 'hh:mm:ss'"
+```
 
 ## 快速跳转
 

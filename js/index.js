@@ -1,6 +1,8 @@
 const searchList = [
-  '/docs/scala/README.md',
-  '/docs/c++11/README.md',
+  '/lang/scala/README.md',
+  '/lang/modern_cpp/README.md',
+  '/lang/sql/README.md',
+  '/lang/sql_adv/README.md',
   '/docs/hadoop/README.md',
   '/docs/zookeeper/README.md',
   '/docs/mysql/README.md',
@@ -9,9 +11,7 @@ const searchList = [
   '/docs/hbase/README.md',
   '/docs/scala&spark/README.md',
   '/docs/flume/README.md',
-  '/docs/kafka/README.md',
-  '/docs/sql/README.md',
-  '/docs/sql_adv/README.md'
+  '/docs/kafka/README.md'
 ]
 
 window.$docsify = {
@@ -25,9 +25,8 @@ window.$docsify = {
   nameLink: '/',
   themeColor: '#000000',
   noEmoji: false,
-  mergeNavbar: true,
   routerMode: 'history',
-  // hideSidebar: true,
+  coverpage: true,
   onlyCover: true,
   requestHeaders: {
     'cache-control': 'max-age=600'
